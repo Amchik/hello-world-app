@@ -6,7 +6,7 @@ COPY . .
 
 RUN cargo build --release
 
-FROM debian:slim
+FROM debian:latest
 
 COPY --from=builder /app/target/release/hello-world-app /usr/local/bin/hello-world-app
 
