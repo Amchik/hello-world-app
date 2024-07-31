@@ -1,4 +1,8 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    env,
+    net::{Ipv4Addr, SocketAddrV4},
+};
 
 use axum::{
     extract::Request,
@@ -7,6 +11,7 @@ use axum::{
     routing::get,
     Router,
 };
+use tokio::net::TcpListener;
 
 async fn get_headers(req: Request) -> impl IntoResponse {
     let headers: HashMap<&str, &str> = req
@@ -31,6 +36,13 @@ async fn main() {
         .route("/", get(|| async { "Hello, user! Try `GET /headers`" }))
         .route("/headers", get(get_headers));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let port = env::var("PORT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(3000u16);
+
+    let listener = TcpListener::bind(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), port))
+        .await
+        .unwrap();
     axum::serve(listener, app).await.unwrap();
 }
